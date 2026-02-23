@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Qualitat de l’aigua - Visor municipal</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+
+  <div class="container">
+
+    <header class="header">
+      <h1>Resultats de les anàlisis de l’aigua</h1>
+      <div class="sub">
+        Consulta els resultats del control de qualitat de l’aigua al municipi
+      </div>
+      <div id="updatedAt" class="muted">
+        Última actualització: —
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <aside class="panel">
+        <h2>Filtres</h2>
+
+        <label>
+          Punt
+          <select id="pointSelect">
+            <option value="">Tots</option>
+          </select>
+        </label>
+
+        <label>
+          Paràmetre
+          <select id="paramSelect">
+            <option value="">Tots</option>
+          </select>
+        </label>
+
+        <label>
+          Període
+          <select id="periodSelect">
+            <option value="30">Últims 30 dies</option>
+            <option value="90">Últims 90 dies</option>
+            <option value="365">Últim any</option>
+          </select>
+        </label>
+
+        <a class="button" href="./data/resultats.csv" download>
+          Descarregar dades (CSV)
+        </a>
+
+        <div class="legend">
+          <div><span class="dot ok"></span> Dins dels límits</div>
+          <div><span class="dot warn"></span> Proper al límit</div>
+          <div><span class="dot bad"></span> Fora dels límits</div>
+          <div><span class="dot na"></span> Sense dades recents</div>
+        </div>
+
+        <div class="note">
+          *Dades informatives de control. Per a més informació i interpretació,
+          contacta amb l’Ajuntament.
+        </div>
+      </aside>
+
+      <section class="mapWrap">
+        <div id="map"></div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
+
+  <script src="./app.js"></script>
+
+</body>
+</html>
