@@ -1,5 +1,0 @@
-id_punt,data_mostra,parametre,valor,unitat,limit_min,limit_max
-P001,2026-02-20T10:00:00,Clor lliure,0.8,mg/L,,1.0
-P001,2026-02-20T10:00:00,Escherichia coli,0,NMP/100ml,,0
-P001,2026-02-20T10:00:00,Turbidesa,0.2,UNF,,4
-P002,2026-02-19T09:00:00,Clor lliure,0.15,mg/L,,1.0
