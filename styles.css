@@ -112,7 +112,6 @@ body,
   box-shadow: none !important;
 }
 
-/* Fix suave para artefactos de tiles Leaflet */
 .leaflet-container img,
 .leaflet-pane img,
 .leaflet-tile-container img{
@@ -120,9 +119,9 @@ body,
 }
 
 .leaflet-tile{
-  outline: 1px solid transparent;
-  image-rendering: auto;
+  outline: 1px solid rgba(217, 238, 249, 0.95);
   border: 0;
+  image-rendering: auto;
 }
 
 .leaflet-zoom-animated{
