@@ -425,12 +425,14 @@ const osmStandard = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.
   maxZoom: 19,
   noWrap: true,
   attribution: attributionText,
+  detectRetina: true
 });
 
 const osmFrance = L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
   maxZoom: 19,
   noWrap: true,
   attribution: attributionText,
+  detectRetina: true
 });
 
 let activeBase = osmStandard.addTo(map);
