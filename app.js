@@ -365,8 +365,8 @@ const DROP_ICON_URL = "./assets/gota.png";
 const waterDivIcon = L.divIcon({
   className: "drop-wrap",
   html: `<img class="drop-img" src="${DROP_ICON_URL}" alt="">`,
-  iconSize: [28, 34],
-  iconAnchor: [14, 34]
+  iconSize: [24, 30],
+  iconAnchor: [10, 26]
 });
 
 let clickMarker = null;
@@ -411,7 +411,7 @@ function showClickDrop(latlng) {
 
   clickDropTimer = setTimeout(() => {
     clearClickDrop();
-  }, 2200);
+  }, 1500);
 }
 
 const attributionText = "NOSTRAIGUA · © OpenStreetMap contributors";
@@ -619,11 +619,17 @@ function selectEntry(entry, clickLatLng) {
       .openOn(map);
 
     popupOpenTimer = null;
-  }, 2250);
+  }, 1600);
 }
 
 map.on("click", (e) => {
+  map.getContainer().classList.add("map-clicking");
+
   showClickDrop(e.latlng);
+
+  setTimeout(() => {
+    map.getContainer().classList.remove("map-clicking");
+  }, 1400);
 
   const lngLat = [e.latlng.lng, e.latlng.lat];
   const candidates = sectorsIndex.filter((s) => s.bounds.contains(e.latlng));

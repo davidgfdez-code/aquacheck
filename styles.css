@@ -237,15 +237,21 @@ html, body {
   font-size: 17px !important;
 }
 
-/* GOTA */
+.map-clicking {
+  cursor: default !important;
+}
+
+.map-clicking * {
+  cursor: default !important;
+}
 
 .drop-wrap{
   background: transparent;
   border: 0;
   padding: 0;
   margin: 0;
-  width: 28px;
-  height: 34px;
+  width: 24px;
+  height: 30px;
   position: relative;
   overflow: visible;
   pointer-events: none;
@@ -297,8 +303,8 @@ html, body {
 }
 
 .drop-wrap .drop-img{
-  width: 28px;
-  height: 34px;
+  width: 24px;
+  height: 30px;
   display: block;
   position: relative;
   z-index: 2;
