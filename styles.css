@@ -119,7 +119,7 @@ body,
 }
 
 .leaflet-tile{
-  outline: 1px solid rgba(217, 238, 249, 0.95);
+  outline: 1px solid transparent;
   border: 0;
   image-rendering: auto;
 }
