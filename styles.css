@@ -102,6 +102,21 @@ body,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 🔧 FIX ANTICOSTURAS ESTABLE */
+.leaflet-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-marker-pane,
+.leaflet-shadow-pane,
+.leaflet-popup-pane,
+.leaflet-control-container,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow{
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 .leaflet-interactive:focus,
 .leaflet-marker-icon:focus,
 .leaflet-container a:focus,
@@ -279,6 +294,8 @@ body,
 #map.map-clicking * {
   cursor: none !important;
 }
+
+/* ===== ANIMACIÓN GOTA ===== */
 
 .drop-wrap{
   background: transparent;
