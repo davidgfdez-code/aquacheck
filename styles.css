@@ -69,6 +69,27 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
+body,
+.header,
+.header *,
+.layout--full,
+.layout--full *,
+#map,
+#map * {
+  cursor: pointer !important;
+}
+
+#map.map-clicking,
+#map.map-clicking * {
+  cursor: none !important;
+}
+
+.leaflet-control,
+.leaflet-control * {
+  cursor: default;
+}
+
 .leaflet-container *,
 .leaflet-pane,
 .leaflet-overlay-pane,
@@ -237,12 +258,9 @@ html, body {
   font-size: 17px !important;
 }
 
-.map-clicking {
-  cursor: default !important;
-}
-
-.map-clicking * {
-  cursor: default !important;
+#map.map-clicking,
+#map.map-clicking * {
+  cursor: none !important;
 }
 
 .drop-wrap{

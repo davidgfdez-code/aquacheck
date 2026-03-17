@@ -614,22 +614,39 @@ function selectEntry(entry, clickLatLng) {
       autoPanPaddingBottomRight: [24, 24],
       autoPanPadding: [24, 24]
     })
-      .setLatLng(popupLatLng)
-      .setContent(buildPopupHTML(entry.sectorRaw, estat, files))
-      .openOn(map);
+    .setLatLng(popupLatLng)
+    .setContent(buildPopupHTML(entry.sectorRaw, estat, files))
+    .openOn(map);
 
     popupOpenTimer = null;
   }, 1600);
 }
 
 map.on("click", (e) => {
-  map.getContainer().classList.add("map-clicking");
+  const mapContainer = map.getContainer();
+  mapContainer.classList.add("map-clicking");
 
   showClickDrop(e.latlng);
 
-  setTimeout(() => {
-    map.getContainer().classList.remove("map-clicking");
-  }, 1400);
+  const startX = e.originalEvent?.clientX ?? 0;
+  const startY = e.originalEvent?.clientY ?? 0;
+  const MOVE_THRESHOLD = 8;
+
+  const restoreCursor = (ev) => {
+    const x = ev.originalEvent?.clientX ?? 0;
+    const y = ev.originalEvent?.clientY ?? 0;
+
+    const dx = x - startX;
+    const dy = y - startY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist < MOVE_THRESHOLD) return;
+
+    mapContainer.classList.remove("map-clicking");
+    map.off("mousemove", restoreCursor);
+  };
+
+  map.on("mousemove", restoreCursor);
 
   const lngLat = [e.latlng.lng, e.latlng.lat];
   const candidates = sectorsIndex.filter((s) => s.bounds.contains(e.latlng));
