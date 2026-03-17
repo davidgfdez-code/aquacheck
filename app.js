@@ -236,9 +236,9 @@ function colorSemafor(estat) {
 }
 
 function labelSemafor(estat) {
-  if (estat === "bad") return "NO APTA PER AL CONSUM";
-  if (estat === "warn") return "APTA PER AL CONSUM (amb incidències lleus)";
   if (estat === "ok") return "APTA PER AL CONSUM";
+  if (estat === "warn") return "APTA PER AL CONSUM (amb incidències lleus)";
+  if (estat === "bad") return "NO APTA PER AL CONSUM";
   return "SENSE DADES";
 }
 
@@ -331,10 +331,15 @@ if (!mapEl) {
   throw new Error("div#map no existeix");
 }
 if (mapEl.clientHeight < 50) {
-  console.warn?.("⚠️ El #map té una alçada molt petita. Revisa el CSS height.");
+  console.warn?.("⚠️ El #map té una alçada molt petita. Revisa l'altura al CSS.");
 }
 
-const map = L.map("map", { zoomControl: false, tap: false }).setView(CENTER, START_ZOOM);
+const map = L.map("map", {
+  zoomControl: false,
+  tap: false,
+  wheelPxPerZoomLevel: 150,
+}).setView(CENTER, START_ZOOM);
+
 map.attributionControl.setPrefix(false);
 L.control.zoom({ position: "topleft" }).addTo(map);
 
@@ -759,6 +764,10 @@ function buildResultsIndex(rows) {
     } catch (err) {
       console.warn("No se han podido cargar los resultados.", err);
       resultsBySector = new Map();
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
     }
 
     buildSectorsLayer();
