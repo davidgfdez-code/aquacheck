@@ -66,6 +66,7 @@ html, body {
 .leaflet-container{
   user-select: none;
   outline: none !important;
+  background: #d9eef9;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -109,6 +110,23 @@ body,
 .leaflet-container path:focus{
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* Fix suave para artefactos de tiles Leaflet */
+.leaflet-container img,
+.leaflet-pane img,
+.leaflet-tile-container img{
+  max-width: none !important;
+}
+
+.leaflet-tile{
+  outline: 1px solid transparent;
+  image-rendering: auto;
+  border: 0;
+}
+
+.leaflet-zoom-animated{
+  transform-origin: 0 0;
 }
 
 .leaflet-control-attribution{
@@ -336,26 +354,11 @@ body,
 }
 
 @keyframes aquacheckDropBounce{
-  0%{
-    transform: translate3d(0,-22px,0) scale(.90);
-    opacity: 0;
-  }
-  38%{
-    transform: translate3d(0,0,0) scale(1.04,.93);
-    opacity: 1;
-  }
-  55%{
-    transform: translate3d(0,4px,0) scale(.94,1.05);
-    opacity: 1;
-  }
-  72%{
-    transform: translate3d(0,-4px,0) scale(1.01,.99);
-    opacity: 1;
-  }
-  100%{
-    transform: translate3d(0,0,0) scale(1);
-    opacity: 1;
-  }
+  0%{ transform: translate3d(0,-22px,0) scale(.90); opacity: 0; }
+  38%{ transform: translate3d(0,0,0) scale(1.04,.93); opacity: 1; }
+  55%{ transform: translate3d(0,4px,0) scale(.94,1.05); opacity: 1; }
+  72%{ transform: translate3d(0,-4px,0) scale(1.01,.99); opacity: 1; }
+  100%{ transform: translate3d(0,0,0) scale(1); opacity: 1; }
 }
 
 .drop-anim::before{
@@ -363,22 +366,10 @@ body,
 }
 
 @keyframes aquacheckRipple{
-  0%{
-    transform: translate(-50%, -50%) scale(.20, .30);
-    opacity: 0;
-  }
-  18%{
-    transform: translate(-50%, -50%) scale(.65, .52);
-    opacity: .75;
-  }
-  50%{
-    transform: translate(-50%, -50%) scale(1.6, .85);
-    opacity: .35;
-  }
-  100%{
-    transform: translate(-50%, -50%) scale(3.6, 1.05);
-    opacity: 0;
-  }
+  0%{ transform: translate(-50%, -50%) scale(.20, .30); opacity: 0;}
+  18%{ transform: translate(-50%, -50%) scale(.65, .52);opacity: .75; }
+  50%{ transform: translate(-50%, -50%) scale(1.6, .85); opacity: .35; }
+  100%{ transform: translate(-50%, -50%) scale(3.6, 1.05); opacity: 0; }
 }
 
 .drop-anim::after{
@@ -386,22 +377,10 @@ body,
 }
 
 @keyframes aquacheckRipple2{
-  0%{
-    transform: translate(-50%, -50%) scale(.20, .30);
-    opacity: 0;
-  }
-  18%{
-    transform: translate(-50%, -50%) scale(.60, .50);
-    opacity: .55;
-  }
-  50%{
-    transform: translate(-50%, -50%) scale(1.4, .80);
-    opacity: .22;
-  }
-  100%{
-    transform: translate(-50%, -50%) scale(3.2, .95);
-    opacity: 0;
-  }
+  0%{ transform: translate(-50%, -50%) scale(.20, .30); opacity: 0; }
+  18%{ transform: translate(-50%, -50%) scale(.60, .50); opacity: .55; }
+  50%{ transform: translate(-50%, -50%) scale(1.4, .80); opacity: .22; }
+  100%{ transform: translate(-50%, -50%) scale(3.2, .95); opacity: 0; }
 }
 
 @media (max-width: 720px){
