@@ -177,8 +177,7 @@ function hasUsableValue(row) {
   return toNumber(valorTxt) !== null;
 }
 
-// Semàfor
-function estatDeFila(row) {
+function estatDeFila(row) { // Semàfor
   const p = normalizeText(row.parametre || "");
   const valorTxt = normalizeText(row.valor || "");
 
@@ -409,7 +408,7 @@ function showClickDrop(latlng) {
     const el = clickMarker && clickMarker.getElement();
     if (el) {
       el.classList.remove("drop-anim");
-      void el.offsetWidth; // reinicia la animación CSS
+      void el.offsetWidth;
       el.classList.add("drop-anim");
     }
   });
@@ -548,6 +547,13 @@ function calcularSemaforSector(files) {
   return "na";
 }
 
+function formatParametre(raw) { // Cambio de label independiente de csv
+  const norm = normalizeText(raw);
+  if (norm === ORG_KEY) return "Olor, gust i color";
+  if (norm === MICRO_KEY) return "Qualitat microbiològica";
+  return raw;
+}
+
 function buildPopupHTML(sectorNom, estat, files) {
   const c = colorSemafor(estat);
   const label = labelSemafor(estat);
@@ -559,7 +565,7 @@ function buildPopupHTML(sectorNom, estat, files) {
     if (!r) {
       return `
         <div class="row">
-          <span class="label">${ind.key}</span>
+          <span class="label">${formatParametre(ind.key)}</span>
           <span class="value muted">—</span>
           <span class="date muted">—</span>
         </div>`;
@@ -573,7 +579,7 @@ function buildPopupHTML(sectorNom, estat, files) {
 
     return `
       <div class="row popup-row ${estatFila}">
-        <span class="label">${ind.key}</span>
+        <span class="label">${formatParametre(ind.key)}</span>
         <span class="value">${r.valor}${unit}</span>
         <span class="date">${dataParam}</span>
       </div>`;
