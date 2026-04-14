@@ -1,7 +1,7 @@
 console.clear();
 console.log("🟦 app.js carregat (AquaCheck v2)", new Date().toISOString());
 
-const DATA_SECTORS = "./data/sectors.geojson";
+const DATA_ZONES = "./data/ZONES_ABAST.geojson";
 const DATA_RESULTS = "./data/resultats.csv";
 
 const WARN_RATIO = 0.8;
@@ -23,13 +23,33 @@ const INDICADORS = [
 
 function normalizeText(s) {
   return String(s || "")
-    .replace(/^\uFEFF/, "")
-    .replace(/"/g, "")
-    .trim()
-    .replace(/\s+/g, " ")
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "") // tildes
+    .replace(/['’`]/g, "")           // apóstrofes
+    .replace(/-/g, " ")              // guiones = espacios
+    .replace(/\s+/g, " ")            // sin espacios dobles
+    .trim()
     .toUpperCase();
+}
+
+function getFeatureZona(feature) {
+  return normalizeText(
+    feature?.properties?.ZONA ||
+    feature?.properties?.zona ||
+    feature?.properties?.sector ||
+    feature?.properties?.name ||
+    feature?.properties?.NOM ||
+    ""
+  );
+}
+
+function getRowZona(row) {
+  return normalizeText(
+    row?.zona ||
+    row?.ZONA ||
+    row?.sector ||
+    ""
+  );
 }
 
 const MICRO_KEY = normalizeText("Microbiologia");
@@ -47,8 +67,15 @@ const ALWAYS_OK = new Set([
   normalizeText("Clorurs")
 ]);
 
-function sectorFromProps(props) {
-  return props && props.sector ? String(props.sector) : "";
+function zonaFromProps(props) {
+  return String(
+    props?.ZONA ||
+    props?.zona ||
+    props?.sector ||
+    props?.name ||
+    props?.NOM ||
+    ""
+  ).trim();
 }
 
 async function fetchJSON(url) {
@@ -375,10 +402,10 @@ const waterDivIcon = L.divIcon({
 
 let clickMarker = null;
 let clickDropTimer = null;
-let geoSectors = null;
-let capaSectors = null;
-let sectorsIndex = [];
-let resultsBySector = new Map();
+let geoZones = null;
+let capaZones = null;
+let zonesIndex = [];
+let resultatsxZona = new Map();
 let selected = null;
 let popupActiu = null;
 let popupOpenTimer = null;
@@ -483,30 +510,30 @@ function clearSelection() {
   }
 }
 
-function buildSectorsLayer() {
-  if (!geoSectors || !geoSectors.features) {
-    throw new Error("GeoJSON de sectors invàlid o buit");
+function buildZonesLayer() {
+  if (!geoZones || !geoZones.features) {
+    throw new Error("GeoJSON de zones invàlid o buit");
   }
 
-  if (capaSectors) {
-    map.removeLayer(capaSectors);
-    capaSectors = null;
+  if (capaZones) {
+    map.removeLayer(capaZones);
+    capaZones = null;
   }
 
-  sectorsIndex = [];
+  zonesIndex = [];
 
-  capaSectors = L.geoJSON(geoSectors, {
+  capaZones = L.geoJSON(geoZones, {
     style: () => styleHidden(),
     onEachFeature: (feature, layer) => {
       const props = feature?.properties || {};
-      const sectorRaw = sectorFromProps(props) || props.name || props.NOM || "";
-      const sectorKey = normalizeText(sectorRaw);
+      const zonaRaw = zonaFromProps(props);
+      const zonaKey = getFeatureZona(feature);
       const bounds = layer.getBounds();
       const area = boundsArea(bounds);
 
-      sectorsIndex.push({
-        sectorRaw,
-        sectorKey,
+      zonesIndex.push({
+        zonaRaw,
+        zonaKey,
         feature,
         layer,
         bounds,
@@ -534,7 +561,7 @@ function getLatestIndicadorsMap(files) {
   return mapIndicadors;
 }
 
-function calcularSemaforSector(files) {
+function calcularSemaforZona(files) {
   if (!files || files.length === 0) return "na";
 
   const rowsByIndicador = Array.from(getLatestIndicadorsMap(files).values());
@@ -554,7 +581,7 @@ function formatParametre(raw) { // Cambio de label independiente de csv
   return raw;
 }
 
-function buildPopupHTML(sectorNom, estat, files) {
+function buildPopupHTML(zonaNom, estat, files) {
   const c = colorSemafor(estat);
   const label = labelSemafor(estat);
   const latestMap = getLatestIndicadorsMap(files);
@@ -589,7 +616,7 @@ function buildPopupHTML(sectorNom, estat, files) {
   <div class="popup">
     <div class="popup-header">
       <div class="dot" style="background:${c}"></div>
-      <div class="sector">${sectorNom || "Sector"}</div>
+      <div class="zona">${zonaNom || "Zona"}</div>
     </div>
 
     <div class="popup-status" style="border-left:4px solid ${c}">
@@ -609,8 +636,12 @@ function buildPopupHTML(sectorNom, estat, files) {
 function selectEntry(entry, clickLatLng) {
   clearSelection();
 
-  const files = resultsBySector.get(entry.sectorKey) || [];
-  const estat = calcularSemaforSector(files);
+  const files =
+    resultatsxZona.get(entry.zonaKey) ||
+    resultatsxZona.get(normalizeText(entry.zonaRaw)) ||
+    [];
+
+  const estat = calcularSemaforZona(files);
 
   const popupLatLng = clickLatLng || (entry.bounds ? entry.bounds.getCenter() : null);
   if (!popupLatLng) return;
@@ -628,7 +659,7 @@ function selectEntry(entry, clickLatLng) {
       autoPanPadding: [24, 24]
     })
     .setLatLng(popupLatLng)
-    .setContent(buildPopupHTML(entry.sectorRaw, estat, files))
+    .setContent(buildPopupHTML(entry.zonaRaw, estat, files))
     .openOn(map);
 
     popupOpenTimer = null;
@@ -662,7 +693,7 @@ map.on("click", (e) => {
   map.on("mousemove", restoreCursor);
 
   const lngLat = [e.latlng.lng, e.latlng.lat];
-  const candidates = sectorsIndex.filter((s) => s.bounds.contains(e.latlng));
+  const candidates = zonesIndex.filter((s) => s.bounds.contains(e.latlng));
   const hits = candidates.filter((s) => pointInGeometry(lngLat, s.feature.geometry));
 
   if (!hits.length) {
@@ -675,21 +706,20 @@ map.on("click", (e) => {
 });
 
 function buildResultsIndex(rows) {
-  resultsBySector = new Map();
+  resultatsxZona = new Map();
 
   for (const r of rows) {
-    let sector = getField(r, [
-      "sector", "Sector", "SECTOR",
+    let zona = getField(r, [
       "zona", "Zona", "ZONA"
     ]);
 
-    sector = sector.replace(/^\uFEFF/, "").replace(/"/g, "").trim();
+    zona = zona.replace(/^\uFEFF/, "").replace(/"/g, "").trim();
 
-    const key = normalizeText(sector);
+    const key = normalizeText(zona);
     if (!key) continue;
 
     const row = {
-      sector,
+      zona,
       data_mostra: getField(r, [
         "data_mostra", "Data Mostra", "DATA_MOSTRA",
         "data", "Data", "DATA",
@@ -724,11 +754,11 @@ function buildResultsIndex(rows) {
 
     if (!row.parametre) continue;
 
-    if (!resultsBySector.has(key)) resultsBySector.set(key, []);
-    resultsBySector.get(key).push(row);
+    if (!resultatsxZona.has(key)) resultatsxZona.set(key, []);
+    resultatsxZona.get(key).push(row);
   }
 
-  for (const arr of resultsBySector.values()) {
+  for (const arr of resultatsxZona.values()) {
     arr.sort((a, b) => {
       const db = parseDateFlexible(b.data_mostra);
       const da = parseDateFlexible(a.data_mostra);
@@ -739,12 +769,12 @@ function buildResultsIndex(rows) {
   }
 
   console.log("📊 resultats.csv parsejat:", rows.length, "files");
-  console.log("📍 sectors amb resultats:", resultsBySector.size);
+  console.log("📍 zones amb resultats:", resultatsxZona.size);
 }
 
 (async function init() {
   try {
-    geoSectors = await fetchJSON(DATA_SECTORS);
+    geoZones = await fetchJSON(DATA_ZONES);
 
     try {
       const csv = await fetchText(DATA_RESULTS);
@@ -771,14 +801,14 @@ function buildResultsIndex(rows) {
       }
     } catch (err) {
       console.warn("No se han podido cargar los resultados.", err);
-      resultsBySector = new Map();
+      resultatsxZona = new Map();
+    }
 
     setTimeout(() => {
       map.invalidateSize();
     }, 300);
-    }
 
-    buildSectorsLayer();
+    buildZonesLayer();
   } catch (err) {
     console.error("INIT: no se han podido cargar los datos del mapa.", err);
     showUserError(
