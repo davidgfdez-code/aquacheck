@@ -58,14 +58,9 @@ const ORG_KEY = normalizeText("Organolèptic");
 const NITRATS_KEY = normalizeText("Nitrats");
 const TERB_KEY = normalizeText("Terbolesa");
 const CLORURS_KEY = normalizeText("Clorurs");
-
-const ALWAYS_OK = new Set([
-  normalizeText("pH"),
-  normalizeText("Conductivitat"),
-  normalizeText("Clor lliure"),
-  normalizeText("Duresa"),
-  normalizeText("Clorurs")
-]);
+const DURESA_KEY = normalizeText("Duresa");
+const PH_KEY = normalizeText("pH");
+const ALWAYS_OK = new Set([]);
 
 function zonaFromProps(props) {
   return String(
@@ -208,46 +203,29 @@ function estatDeFila(row) { // Semáforo
   const p = normalizeText(row.parametre || "");
   const valorTxt = normalizeText(row.valor || "");
 
-  if (ALWAYS_OK.has(p)) return "ok";
-
-  if (p === MICRO_KEY || p === ORG_KEY) {
+   if (p === MICRO_KEY || p === ORG_KEY) {
     if (valorTxt === "INCORRECTE") return "bad";
     if (valorTxt === "CORRECTE") return "ok";
     return "na";
   }
 
   const v = toNumber(row.valor);
-
-  const hasMin = row.limit_min !== "" && row.limit_min != null;
-  const hasMax = row.limit_max !== "" && row.limit_max != null;
-  const min = hasMin ? toNumber(row.limit_min) : null;
-  const max = hasMax ? toNumber(row.limit_max) : null;
-
   if (v === null) return "na";
 
-  if (min !== null) {
-    if (v < min || (max !== null && v > max)) {
-      if (p === NITRATS_KEY) return "bad";
-      if (p === TERB_KEY) return "warn";
-      return "warn";
+    if (p === PH_KEY) {
+    const min = row.limit_min ? toNumber(row.limit_min) : null;
+    const max = row.limit_max ? toNumber(row.limit_max) : null;
+
+    if ((min !== null && v < min) || (max !== null && v > max)) {
+      return "bad";
     }
     return "ok";
   }
 
-  if (max === null) return "ok";
+    const max = row.limit_max ? toNumber(row.limit_max) : null;
 
-  if (max === 0) {
-    if (v > 0) {
-      if (p === NITRATS_KEY) return "bad";
-      if (p === TERB_KEY) return "warn";
-      return "warn";
-    }
-    return "ok";
-  }
-
-  if (v > max) {
-    if (p === NITRATS_KEY) return "bad";
-    if (p === TERB_KEY) return "warn";
+  if (max !== null && v > max) {
+    if (p === NITRATS_KEY || p === TERB_KEY) return "bad";
     return "warn";
   }
 
@@ -263,7 +241,7 @@ function colorSemafor(estat) {
 
 function labelSemafor(estat) {
   if (estat === "ok") return "APTA PER AL CONSUM";
-  if (estat === "warn") return "APTA PER AL CONSUM (amb incidències lleus)";
+  if (estat === "warn") return "APTA PER AL CONSUM, amb incidències";
   if (estat === "bad") return "NO APTA PER AL CONSUM";
   return "SENSE DADES";
 }
@@ -584,13 +562,14 @@ function formatParametre(raw) { // Cambio de etiqueta del popup independiente de
 function formatUnitat(unitat) {
   const u = String(unitat || "").trim();
   if (!u) return "";
-  return u.replace(/CaCo3/g, "CaCo<sub>3</sub>");
+  return u.replace(/ca\s*co\s*3/gi, "CaCO<sub>3</sub>");
 }
 
 function buildPopupHTML(zonaNom, estat, files) {
   const c = colorSemafor(estat);
   const label = labelSemafor(estat);
   const latestMap = getLatestIndicadorsMap(files);
+  let showGeoNote = false;
 
   const rows = INDICADORS.map((ind) => {
     const r = latestMap.get(normalizeText(ind.key));
@@ -607,16 +586,25 @@ function buildPopupHTML(zonaNom, estat, files) {
     const unit = r.unitat ? ` ${formatUnitat(r.unitat)}` : "";
     const dataParam = r.data_mostra ? formatData(r.data_mostra) : "—";
 
-    const p = normalizeText(r.parametre || "");
-    const estatFila = (p === CLORURS_KEY || p === COND_KEY) ? "ok" : estatDeFila(r);
+    const estatFila = estatDeFila(r);
+    const hasAsterisk = isOutOfAsteriskLimit(r);
+    const markGeoValue = isOutOfDisplayLimit(r);
+
+    if (markGeoValue) {
+      showGeoNote = true;
+    }
 
     return `
       <div class="row popup-row ${estatFila}">
         <span class="label">${formatParametre(ind.key)}</span>
-        <span class="value">${r.valor}${unit}</span>
+        <span class="value${markGeoValue ? " geo-mark" : ""}">${r.valor}${unit}${hasAsterisk ? "*" : ""}</span>
         <span class="date">${dataParam}</span>
       </div>`;
   }).join("");
+
+  const geoNoteHTML = showGeoNote
+    ? `<div class="popup-note">* Valors condicionats per la naturalesa geològica dels terrenys que travessa el recurs hídric.</div>`
+    : "";
 
   return `
   <div class="popup">
@@ -633,10 +621,60 @@ function buildPopupHTML(zonaNom, estat, files) {
       ${rows}
     </div>
 
+    ${geoNoteHTML}
+
     <div class="popup-footer">
       Dades informatives. Per a obtenir més informació, consulta la plataforma SINAC.
     </div>
   </div>`;
+}
+
+function isOutOfAsteriskLimit(row) {
+  const p = normalizeText(row.parametre || "");
+
+  if (
+    p !== COND_KEY &&
+    p !== DURESA_KEY &&
+    p !== CLORURS_KEY &&
+    p !== NITRATS_KEY
+  ) {
+    return false;
+  }
+
+  const v = toNumber(row.valor);
+  if (v === null) return false;
+
+  if (p === NITRATS_KEY) {
+    const max = row.limit_max ? toNumber(row.limit_max) : null;
+    return max !== null && v > max;
+  }
+
+  const min = (row.limit_min !== "" && row.limit_min != null) ? toNumber(row.limit_min) : null;
+  const max = (row.limit_max !== "" && row.limit_max != null) ? toNumber(row.limit_max) : null;
+
+  if (min !== null && v < min) return true;
+  if (max !== null && v > max) return true;
+
+  return false;
+}
+
+function isOutOfDisplayLimit(row) {
+  const p = normalizeText(row.parametre || "");
+
+  if (p !== COND_KEY && p !== DURESA_KEY && p !== CLORURS_KEY) {
+    return false;
+  }
+
+  const v = toNumber(row.valor);
+  if (v === null) return false;
+
+  const min = (row.limit_min !== "" && row.limit_min != null) ? toNumber(row.limit_min) : null;
+  const max = (row.limit_max !== "" && row.limit_max != null) ? toNumber(row.limit_max) : null;
+
+  if (min !== null && v < min) return true;
+  if (max !== null && v > max) return true;
+
+  return false;
 }
 
 function selectEntry(entry, clickLatLng) {

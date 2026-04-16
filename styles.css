@@ -248,6 +248,17 @@ body,
   text-underline-offset: 2px;
 }
 
+.value.geo-mark{
+  font-weight: 800;
+}
+
+.popup-note{
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #5f7786;
+}
+
 .popup-footer {
   margin-top:10px;
   font-size:12px;
